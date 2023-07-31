@@ -58,3 +58,10 @@ func TestNewTcpSource(t *testing.T) {
 	_ = SinkSlice[byte](sink)
 	//fmt.Println(string(s))
 }
+
+func TestNewStdinSource(t *testing.T) {
+	// test中stdin=/dev/null
+	sink := NewChanSink()
+	NewStdinSource().Link(NewBaseStream()).To(sink)
+	fmt.Println(SinkSlice[byte](sink))
+}

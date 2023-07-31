@@ -30,6 +30,7 @@ func (cs *ChanSource) Link(f Flow) Flow {
 	return f
 }
 
+// NewSliceSource 切片source
 func NewSliceSource[T any](slice []T) Source {
 	// slice => source node
 	out := make(chan any)
@@ -57,6 +58,7 @@ func (fs *FileSource) Link(f Flow) Flow {
 	return f
 }
 
+// NewFileSource 文件source
 func NewFileSource(fileName string) (s Source, err error) {
 	f, err := os.Open(fileName)
 	if err != nil {
@@ -96,6 +98,7 @@ func (ts *TcpSource) Link(f Flow) Flow {
 	return f
 }
 
+// NewTcpSource TCP网络source
 func NewTcpSource(laddr string) (s Source, err error) {
 	addr, _ := net.ResolveTCPAddr("tcp", laddr)
 	listener, err := net.ListenTCP("tcp", addr)
@@ -130,4 +133,26 @@ func NewTcpSource(laddr string) (s Source, err error) {
 		}
 	}()
 	return
+}
+
+func NewStdinSource() (s Source) {
+	f := os.Stdin
+	s = &FileSource{
+		f:   f,
+		out: make(chan any),
+	}
+	go func() {
+		defer f.Close()
+		reader := bufio.NewReader(f)
+		for {
+			b, err := reader.ReadByte()
+			if err != nil {
+				fmt.Printf("Stdin reader: %v\n", err)
+				break
+			}
+			s.Out() <- b
+		}
+		close(s.Out())
+	}()
+	return s
 }
