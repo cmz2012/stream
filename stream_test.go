@@ -2,6 +2,7 @@ package stream
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 	"testing"
 )
@@ -34,15 +35,10 @@ func TestMergeFlow(t *testing.T) {
 func TestNewFileSource(t *testing.T) {
 	sink := NewChanSink()
 	f1 := NewSliceSource[int]([]int{1, 2, 3, 4, 5})
-	f2, err := NewFileSource("./README.md")
-	if err != nil {
-		t.Log(err)
-		return
-	}
-	f3 := f2.Link(NewMapStream[byte, string](func(b byte) string {
+	f2 := NewFileSource(os.Stdin).Link(NewMapStream[byte, string](func(b byte) string {
 		return string(b)
 	}))
-	MergeFlow([]OutLet{f1, f3}).To(sink)
+	MergeFlow([]OutLet{f1, f2}).To(sink)
 	s := SinkSlice[any](sink)
 	fmt.Println(s)
 }
@@ -57,11 +53,4 @@ func TestNewTcpSource(t *testing.T) {
 	f.Link(NewBaseStream()).To(sink)
 	_ = SinkSlice[byte](sink)
 	//fmt.Println(string(s))
-}
-
-func TestNewStdinSource(t *testing.T) {
-	// test中stdin=/dev/null
-	sink := NewChanSink()
-	NewStdinSource().Link(NewBaseStream()).To(sink)
-	fmt.Println(SinkSlice[byte](sink))
 }
