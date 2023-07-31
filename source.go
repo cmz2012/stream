@@ -59,11 +59,7 @@ func (fs *FileSource) Link(f Flow) Flow {
 }
 
 // NewFileSource 文件source
-func NewFileSource(fileName string) (s Source, err error) {
-	f, err := os.Open(fileName)
-	if err != nil {
-		return
-	}
+func NewFileSource(f *os.File) (s Source) {
 	s = &FileSource{
 		f:   f,
 		out: make(chan any),
@@ -133,26 +129,4 @@ func NewTcpSource(laddr string) (s Source, err error) {
 		}
 	}()
 	return
-}
-
-func NewStdinSource() (s Source) {
-	f := os.Stdin
-	s = &FileSource{
-		f:   f,
-		out: make(chan any),
-	}
-	go func() {
-		defer f.Close()
-		reader := bufio.NewReader(f)
-		for {
-			b, err := reader.ReadByte()
-			if err != nil {
-				fmt.Printf("Stdin reader: %v\n", err)
-				break
-			}
-			s.Out() <- b
-		}
-		close(s.Out())
-	}()
-	return s
 }
