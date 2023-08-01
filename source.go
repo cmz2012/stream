@@ -44,6 +44,20 @@ func NewSliceSource[T any](slice []T) Source {
 	return source
 }
 
+func NewMapSource[T comparable, R any](m map[T]R) Source {
+	source := &ChanSource{out: make(chan any)}
+	go func() {
+		for k, v := range m {
+			source.Out() <- Pair[T, R]{
+				First:  k,
+				Second: v,
+			}
+		}
+		close(source.Out())
+	}()
+	return source
+}
+
 type FileSource struct {
 	f   *os.File
 	out chan any
